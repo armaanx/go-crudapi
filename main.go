@@ -32,10 +32,10 @@ func main() {
 	movies = append(movies, Movie{ID: "2", Isbn: "69969669", Title: "Interstellar", Director: &Director{Firstname: "Christopher", Lastname: "Nolan"}})
 
 	r.HandleFunc("/movies", getMovies).Methods("GET")
-	r.HandleFunc("/movies/[id]", getMovie).Methods("GET")
+	r.HandleFunc("/movies/{id}", getMovie).Methods("GET")
 	r.HandleFunc("/movies", createMovie).Methods("POST")
-	r.HandleFunc("/movies/[id]", updateMovie).Methods("PUT")
-	r.HandleFunc("/movies/[id]", deleteMovie).Methods("DELETE")
+	r.HandleFunc("/movies/{id}", updateMovie).Methods("PUT")
+	r.HandleFunc("/movies/{id}", deleteMovie).Methods("DELETE")
 
 	fmt.Printf("Starting server at Port 3000\n")
 	log.Fatal(http.ListenAndServe(":3000", r))
@@ -54,8 +54,8 @@ func deleteMovie(w http.ResponseWriter, r *http.Request) {
 			movies = append(movies[:index], movies[index+1:]...)
 			break
 		}
-		json.NewEncoder(w).Encode(movies)
 	}
+	json.NewEncoder(w).Encode(movies)
 }
 
 func getMovie(w http.ResponseWriter, r *http.Request) {
@@ -67,6 +67,7 @@ func getMovie(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
+	http.Error(w, "Movie not found", http.StatusNotFound)
 }
 
 func createMovie(w http.ResponseWriter, r *http.Request) {
@@ -80,7 +81,7 @@ func createMovie(w http.ResponseWriter, r *http.Request) {
 }
 
 func updateMovie(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "applicaton/json")
+	w.Header().Set("Content-Type", "application/json")
 	params := mux.Vars(r)
 	for index, item := range movies {
 		if item.ID == params["id"] {
@@ -90,6 +91,7 @@ func updateMovie(w http.ResponseWriter, r *http.Request) {
 			movie.ID = params["id"]
 			movies = append(movies, movie)
 			json.NewEncoder(w).Encode(movie)
+			return
 		}
 	}
 }
